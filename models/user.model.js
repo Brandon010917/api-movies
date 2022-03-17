@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+
 // Utils
 const { sequelize } = require("../utils/database");
 
@@ -25,6 +26,7 @@ const User = sequelize.define("user", {
   role: {
     type: DataTypes.STRING(10),
     allowNull: false,
+    defaultValue: "guest",
   },
   status: {
     type: DataTypes.STRING(10),
