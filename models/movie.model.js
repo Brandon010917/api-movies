@@ -7,39 +7,39 @@ const Movie = sequelize.define("movie", {
     primaryKey: true,
     type: DataTypes.INTEGER,
     autoIncrement: true,
-    allowNull: false,
+    allowNull: false
   },
   title: {
     type: DataTypes.STRING(100),
-    allowNull: false,
+    allowNull: false
   },
   description: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: false
   },
   duration: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 0,
+    defaultValue: 0
   },
   rating: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 1,
+    defaultValue: 1
   },
-  img: {
+  imgUrl: {
     type: DataTypes.STRING(100),
-    allowNull: false,
+    allowNull: false
   },
   genre: {
     type: DataTypes.STRING(10),
-    allowNull: false,
+    allowNull: false
   },
   status: {
     type: DataTypes.STRING(10),
     allowNull: false,
-    defaultValue: "active",
-  },
+    defaultValue: "active"
+  }
 });
 
 module.exports = { Movie };

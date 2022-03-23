@@ -8,31 +8,31 @@ const User = sequelize.define("user", {
     primaryKey: true,
     type: DataTypes.INTEGER,
     autoIncrement: true,
-    allowNull: false,
+    allowNull: false
   },
   username: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
+    type: DataTypes.STRING(100),
+    allowNull: false
   },
   email: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(100),
     allowNull: false,
-    unique: true,
+    unique: true
   },
   password: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
+    type: DataTypes.STRING(100),
+    allowNull: false
   },
   role: {
     type: DataTypes.STRING(10),
     allowNull: false,
-    defaultValue: "guest",
+    defaultValue: "guest"
   },
   status: {
     type: DataTypes.STRING(10),
     allowNull: false,
-    defaultValue: "active",
-  },
+    defaultValue: "active"
+  }
 });
 
 module.exports = { User };

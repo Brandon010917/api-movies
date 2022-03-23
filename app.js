@@ -1,4 +1,3 @@
-// 1. Create an Express server
 const express = require("express");
 
 // Controllers
