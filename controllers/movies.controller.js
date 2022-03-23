@@ -68,6 +68,10 @@ exports.updateMovie = catchAsync(async (req, res, next) => {
   if (!movie) return next(new AppError(404, "Movie not found"));
 
   await movie.update({ ...data });
+
+  res.status(204).json({
+    status: "success"
+  });
 });
 
 exports.deleteMovie = catchAsync(async (req, res, next) => {
