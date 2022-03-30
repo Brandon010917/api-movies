@@ -16,6 +16,7 @@ const app = express();
 
 // Config express
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Endpoints
 app.use("/api/v1/users", usersRouter);

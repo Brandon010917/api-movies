@@ -46,11 +46,7 @@ exports.createNewActor = catchAsync(async (req, res, next) => {
 });
 
 exports.getActorById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const actor = await Actor.findOne({ where: { id, status: "active" } });
-
-  if (!actor) return next(new AppError(404, "Actor not found"));
+  const { actor } = req;
 
   res.status(200).json({
     status: "success",
@@ -59,12 +55,8 @@ exports.getActorById = catchAsync(async (req, res, next) => {
 });
 
 exports.updateActor = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const { actor } = req;
   const data = filterObj(req.body, "name", "country", "age");
-
-  const actor = await Actor.findOne({ where: { id, status: "active" } });
-
-  if (!actor) return next(new AppError(404, "Actor not found"));
 
   await actor.update({ ...data });
 
@@ -74,18 +66,7 @@ exports.updateActor = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteActor = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const actor = await Actor.findOne({
-    where: {
-      id,
-      status: "active"
-    }
-  });
-
-  if (!actor) {
-    return next(new AppError(404, "Actor not found"));
-  }
+  const { actor } = req;
 
   await actor.update({ status: "deleted" });
 

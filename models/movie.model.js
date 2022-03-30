@@ -28,11 +28,11 @@ const Movie = sequelize.define("movie", {
     defaultValue: 1
   },
   imgUrl: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(255),
     allowNull: false
   },
   genre: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(50),
     allowNull: false
   },
   status: {

@@ -1,3 +1,5 @@
+const { ref, uploadBytes } = require("firebase/storage");
+
 // Models
 const { Movie } = require("../models/movie.model");
 const { AppError } = require("../utils/appError");
@@ -5,6 +7,7 @@ const { AppError } = require("../utils/appError");
 // Utils
 const { catchAsync } = require("../utils/catchAsync");
 const { filterObj } = require("../utils/filterObj");
+const { storage } = require("../utils/firebase");
 
 exports.getAllMovies = catchAsync(async (req, res, next) => {
   const movies = await Movie.findAll({
@@ -20,9 +23,9 @@ exports.getAllMovies = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewMovie = catchAsync(async (req, res, next) => {
-  const { title, description, duration, rating, imgUrl, genre } = req.body;
+  const { title, description, duration, rating, genre } = req.body;
 
-  if (!title || !description || !duration || !rating || !imgUrl || !genre) {
+  if (!title || !description || !duration || !rating || !genre) {
     return next(
       new AppError(
         404,
@@ -31,14 +34,23 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
     );
   }
 
-  const newMovie = await Movie.create(
+  const imageRef = ref(
+    storage,
+    `images/${Date.now()}-${req.file.originalname}`
+  );
+
+  const result = await uploadBytes(imageRef, req.file.buffer);
+
+  console.log(result.metadata.fullPath);
+
+  const newMovie = await Movie.create({
     title,
     description,
     duration,
     rating,
-    imgUrl,
+    imgUrl: result.metadata.fullPath,
     genre
-  );
+  });
 
   res.status(201).json({
     status: "success",

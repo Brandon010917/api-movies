@@ -14,7 +14,10 @@ dotenv.config({ path: "./config.env" });
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.findAll({
-    where: { status: "active" }
+    where: { status: "active" },
+    attributes: {
+      exclude: ["password"]
+    }
   });
 
   res.status(200).json({
@@ -57,16 +60,7 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getUserById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const user = await User.findOne({
-    where: { id, status: "active" },
-    attributes: {
-      exclude: ["password"]
-    }
-  });
-
-  if (!user) return next(new AppError(404, "User not found"));
+  const { user } = req;
 
   return res.status(200).json({
     status: "success",
@@ -75,12 +69,8 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const { user } = req;
   const data = filterObj(req.body, "username", "email");
-
-  const user = await User.findOne({ where: { id, status: "active" } });
-
-  if (!user) return next(new AppError(404, "User not found"));
 
   await user.update({ ...data });
 
@@ -90,11 +80,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const user = await User.findOne({ where: { id, status: "active" } });
-
-  if (!user) return next(new AppError(404, "User not found"));
+  const { user } = req;
 
   await user.update({ status: "deleted" });
 
@@ -112,6 +98,7 @@ exports.loginUser = catchAsync(async (req, res, next) => {
     return next(new AppError(400, "Credentials are invalid"));
   }
 
+  // Create JWT
   const token = await jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });

@@ -11,21 +11,31 @@ const {
 } = require("../controllers/users.controller");
 
 // Middlewares
-const { validateSession } = require("../middlewares/auth.middleware");
+const {
+  validateSession,
+  protectedAdmin
+} = require("../middlewares/auth.middleware");
+const {
+  userExits,
+  protectAccountOwner
+} = require("../middlewares/users.middleware");
 
 const router = express.Router();
 
-router.get("/", validateSession, getAllUsers);
-
 router.post("/", createNewUser);
 
-router.get("/:id", validateSession, getUserById);
-
-router.patch("/:id", updateUser);
-
-router.delete("/:id", deleteUser);
-
 router.post("/login", loginUser);
+
+router.use(validateSession);
+
+router.get("/", protectedAdmin, getAllUsers);
+
+router
+  .use("/:id", userExits)
+  .route("/:id")
+  .get(getUserById)
+  .patch(protectAccountOwner, updateUser)
+  .delete(protectAccountOwner, deleteUser);
 
 module.exports = {
   usersRouter: router

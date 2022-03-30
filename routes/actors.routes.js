@@ -6,8 +6,11 @@ const {
   createNewActor,
   getActorById,
   updateActor,
-  deleteActor,
+  deleteActor
 } = require("../controllers/actors.controller");
+
+// Middlewares
+const { actorExits } = require("../middlewares/actors.middleware");
 
 const router = express.Router();
 
@@ -15,12 +18,13 @@ router.get("/", getAllActors);
 
 router.post("/", createNewActor);
 
-router.get("/:id", getActorById);
-
-router.patch("/:id", updateActor);
-
-router.delete("/:id", deleteActor);
+router
+  .use("/:id", actorExits)
+  .route("/:id")
+  .get(getActorById)
+  .patch(updateActor)
+  .delete(deleteActor);
 
 module.exports = {
-  actorsRouter: router,
+  actorsRouter: router
 };
