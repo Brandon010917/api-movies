@@ -1,4 +1,5 @@
 const express = require("express");
+const { body } = require("express-validator");
 
 // Controllers
 const {
@@ -9,20 +10,41 @@ const {
   deleteMovie
 } = require("../controllers/movies.controller");
 
+// Middlewares
+const {
+  validateSession,
+  protectedAdmin
+} = require("../middlewares/auth.middleware");
+const { movieExits } = require("../middlewares/movies.middleware");
+const {
+  createMovieValidators,
+  validateResult
+} = require("../middlewares/validators.middleware");
+
 // Utils
 const { upload } = require("../utils/multer");
 
 const router = express.Router();
 
-router.get("/", getAllMovies);
+router.use(validateSession);
 
-router.post("/", upload.single("imgUrl"), createNewMovie);
+router
+  .route("/")
+  .get(getAllMovies)
+  .post(
+    protectedAdmin,
+    upload.single("imgUrl"),
+    createMovieValidators,
+    validateResult,
+    createNewMovie
+  );
 
-router.get("/:id", getMovieById);
-
-router.patch("/:id", updateMovie);
-
-router.delete("/:id", deleteMovie);
+router
+  .use("/:id", movieExits)
+  .route("/:id")
+  .get(getMovieById)
+  .patch(updateMovie)
+  .delete(deleteMovie);
 
 module.exports = {
   moviesRouter: router

@@ -1,56 +1,84 @@
-const { ref, uploadBytes } = require("firebase/storage");
+const { ref, uploadBytes, getDownloadURL } = require("firebase/storage");
 
 // Models
 const { Movie } = require("../models/movie.model");
-const { AppError } = require("../utils/appError");
+const { Actor } = require("../models/actor.model");
+const { ActorInMovie } = require("../models/actorInMovie.model");
 
 // Utils
 const { catchAsync } = require("../utils/catchAsync");
 const { filterObj } = require("../utils/filterObj");
 const { storage } = require("../utils/firebase");
 
-exports.getAllMovies = catchAsync(async (req, res, next) => {
+exports.getAllMovies = catchAsync(async (req, res) => {
   const movies = await Movie.findAll({
     where: {
       status: "active"
-    }
+    },
+    include: [{ model: Actor }]
   });
+
+  const postsPromises = movies.map(
+    async ({
+      title,
+      description,
+      duration,
+      rating,
+      genre,
+      imgUrl,
+      actors,
+      createdAt,
+      updatedAt
+    }) => {
+      const imageRef = ref(storage, imgUrl);
+      const imgDownloadUrl = await getDownloadURL(imageRef);
+
+      return {
+        title,
+        description,
+        duration,
+        rating,
+        genre,
+        imgUrl: imgDownloadUrl,
+        actors,
+        createdAt,
+        updatedAt
+      };
+    }
+  );
+
+  const resolvedPosts = await Promise.all(postsPromises);
 
   res.status(200).json({
     status: "success",
-    data: { movies }
+    data: { movies: resolvedPosts }
   });
 });
 
-exports.createNewMovie = catchAsync(async (req, res, next) => {
-  const { title, description, duration, rating, genre } = req.body;
-
-  if (!title || !description || !duration || !rating || !genre) {
-    return next(
-      new AppError(
-        404,
-        "Must provide a title, description, duration, rating, img and genre for this request"
-      )
-    );
-  }
+exports.createNewMovie = catchAsync(async (req, res) => {
+  const { title, description, duration, rating, genre, actors } = req.body;
 
   const imageRef = ref(
     storage,
-    `images/${Date.now()}-${req.file.originalname}`
+    `images/movies/${Date.now()}-${req.file.originalname}`
   );
 
-  const result = await uploadBytes(imageRef, req.file.buffer);
-
-  console.log(result.metadata.fullPath);
+  const imgUploaded = await uploadBytes(imageRef, req.file.buffer);
 
   const newMovie = await Movie.create({
     title,
     description,
     duration,
     rating,
-    imgUrl: result.metadata.fullPath,
+    imgUrl: imgUploaded.metadata.fullPath,
     genre
   });
+
+  const actorsInMoviesPromises = actors.map(async (actorId) => {
+    return ActorInMovie.create({ actorId, movieId: newMovie.id });
+  });
+
+  await Promise.all(actorsInMoviesPromises);
 
   res.status(201).json({
     status: "success",
@@ -59,11 +87,7 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
 });
 
 exports.getMovieById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const movie = await Movie.findOne({ where: { id, status: "active" } });
-
-  if (!movie) return next(new AppError(404, "Actor not found"));
+  const { movie } = req;
 
   res.status(200).json({
     status: "success",
@@ -71,13 +95,17 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateMovie = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const data = filterObj(req.body, "title", "description", "duration", "genre");
+exports.updateMovie = catchAsync(async (req, res) => {
+  const { movie } = req;
 
-  const movie = await Movie.findOne({ where: { id, status: "active" } });
-
-  if (!movie) return next(new AppError(404, "Movie not found"));
+  const data = filterObj(
+    req.body,
+    "title",
+    "description",
+    "duration",
+    "rating",
+    "genre"
+  );
 
   await movie.update({ ...data });
 
@@ -86,12 +114,8 @@ exports.updateMovie = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteMovie = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const movie = await Movie.findOne({ where: { id, status: "active" } });
-
-  if (!movie) return next(new AppError(404, "Actor not found"));
+exports.deleteMovie = catchAsync(async (req, res) => {
+  const { movie } = req;
 
   await movie.update({ status: "deleted" });
 

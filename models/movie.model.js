@@ -10,7 +10,7 @@ const Movie = sequelize.define("movie", {
     allowNull: false
   },
   title: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(255),
     allowNull: false
   },
   description: {
@@ -32,7 +32,7 @@ const Movie = sequelize.define("movie", {
     allowNull: false
   },
   genre: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(100),
     allowNull: false
   },
   status: {

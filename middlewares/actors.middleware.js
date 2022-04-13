@@ -9,10 +9,7 @@ exports.actorExits = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const actor = await Actor.findOne({
-    where: { id, status: "active" },
-    attributes: {
-      exclude: ["password"]
-    }
+    where: { id, status: "active" }
   });
 
   if (!actor) return next(new AppError(404, "Actor not found"));

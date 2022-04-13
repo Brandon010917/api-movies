@@ -5,14 +5,11 @@ const { Movie } = require("../models/movie.model");
 const { AppError } = require("../utils/appError");
 const { catchAsync } = require("../utils/catchAsync");
 
-exports.actorExits = catchAsync(async (req, res, next) => {
+exports.movieExits = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const movie = await Movie.findOne({
-    where: { id, status: "active" },
-    attributes: {
-      exclude: ["password"]
-    }
+    where: { id, status: "active" }
   });
 
   if (!movie) return next(new AppError(404, "Movie not found"));

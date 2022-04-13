@@ -1,40 +1,79 @@
+const { ref, uploadBytes, getDownloadURL } = require("firebase/storage");
+const { validationResult } = require("express-validator");
+
 // Models
 const { Actor } = require("../models/actor.model");
+const { Movie } = require("../models/movie.model");
 
 // Utils
 const { catchAsync } = require("../utils/catchAsync");
-const { AppError } = require("../utils/appError");
 const { filterObj } = require("../utils/filterObj");
+const { storage } = require("../utils/firebase");
 
 exports.getAllActors = catchAsync(async (req, res, next) => {
   const actors = await Actor.findAll({
-    where: { status: "active" }
+    where: { status: "active" },
+    include: [
+      {
+        model: Movie
+      }
+    ]
   });
+
+  const actorsPromises = actors.map(
+    async ({
+      id,
+      name,
+      country,
+      rating,
+      age,
+      profilePic,
+      movies,
+      createdAt,
+      updatedAt
+    }) => {
+      const imageRef = ref(storage, profilePic);
+      const imgDownloadUrl = await getDownloadURL(imageRef);
+
+      return {
+        id,
+        name,
+        country,
+        rating,
+        age,
+        profilePic: imgDownloadUrl,
+        movies,
+        createdAt,
+        updatedAt
+      };
+    }
+  );
+
+  const resolvedActors = await Promise.all(actorsPromises);
 
   res.status(200).json({
     status: "success",
-    data: { actors }
+    data: { actors: resolvedActors }
   });
 });
 
 exports.createNewActor = catchAsync(async (req, res, next) => {
-  const { name, country, rating, age, profilePic } = req.body;
+  const { name, country, rating, age } = req.body;
 
-  if (!name || !country || !rating || !age || !profilePic) {
-    return next(
-      new AppError(
-        404,
-        "Must provide a name, country, rating, age and profilePic for this request"
-      )
-    );
-  }
+  // Upload image firebase
+  const imageRef = ref(
+    storage,
+    `images/actors/${Date.now()}-${req.file.originalname}`
+  );
+
+  const imgUploaded = await uploadBytes(imageRef, req.file.buffer);
 
   const newActor = await Actor.create({
     name,
     country,
     rating,
     age,
-    profilePic
+    profilePic: imgUploaded.metadata.fullPath
   });
 
   res.status(201).json({

@@ -44,8 +44,9 @@ exports.validateSession = catchAsync(async (req, res, next) => {
 });
 
 exports.protectedAdmin = catchAsync(async (req, res, next) => {
-  if (req.currentUser.role !== "admin")
+  if (req.currentUser.role !== "admin") {
     next(new AppError(403, "Access denied"));
+  }
 
   next();
 });
