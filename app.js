@@ -14,6 +14,9 @@ const { AppError } = require("./utils/appError");
 // Init express app
 const app = express();
 
+// Set Pug as template engine
+app.set("view engine", "pug");
+
 // Config express
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

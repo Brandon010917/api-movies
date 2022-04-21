@@ -9,6 +9,8 @@ const { ActorInMovie } = require("../models/actorInMovie.model");
 const { catchAsync } = require("../utils/catchAsync");
 const { filterObj } = require("../utils/filterObj");
 const { storage } = require("../utils/firebase");
+const { Email } = require("../utils/email");
+const { User } = require("../models/user.model");
 
 exports.getAllMovies = catchAsync(async (req, res) => {
   const movies = await Movie.findAll({
@@ -79,6 +81,30 @@ exports.createNewMovie = catchAsync(async (req, res) => {
   });
 
   await Promise.all(actorsInMoviesPromises);
+
+  // Find all users with active status and get their email
+  const users = await User.findAll({
+    where: {
+      status: "active"
+    }
+  });
+
+  const emailsUsers = users.map((user) => user.email);
+
+  const movieActors = await Actor.findAll({
+    include: [
+      {
+        model: Movie,
+        through: {
+          where: {
+            movieId: newMovie.id
+          }
+        }
+      }
+    ]
+  });
+
+  await new Email(emailsUsers).sendNewMovie(newMovie, movieActors);
 
   res.status(201).json({
     status: "success",

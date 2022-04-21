@@ -1,0 +1,13 @@
+extends baseEmail
+
+block emailContent
+    p We have a #{newMovie.title} in out cinemas.
+
+    p In this movie, we have actors like:
+
+    ul
+        each actor in movieActors
+            if actor.movies.length > 0
+                li #{actor.name}
+    
+    p #{movieActors[0].profilePic}

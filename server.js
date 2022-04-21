@@ -16,7 +16,7 @@ initModels();
 sequelize
   .sync()
   .then(() => console.log("Database Synced"))
-  .catch((err) => csonsole.log(err));
+  .catch((err) => console.log(err));
 
 const PORT = process.env.PORT || 4000;
 

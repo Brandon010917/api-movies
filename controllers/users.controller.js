@@ -9,6 +9,7 @@ const { AppError } = require("../utils/appError");
 // Utils
 const { catchAsync } = require("../utils/catchAsync");
 const { filterObj } = require("../utils/filterObj");
+const { Email } = require("../utils/email");
 
 dotenv.config({ path: "./config.env" });
 
@@ -50,6 +51,9 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
   });
 
   newUser.password = undefined;
+
+  // Send mail to newly created account
+  await new Email(email).sendWelcome(username);
 
   res.status(201).json({
     status: "success",
