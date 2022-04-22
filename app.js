@@ -1,4 +1,8 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
 
 // Controllers
 const { globalErrorHandler } = require("./controllers/error.controller");
@@ -20,6 +24,24 @@ app.set("view engine", "pug");
 // Config express
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Limit the times the users request to our server
+app.use(
+  rateLimit({
+    windowMs: 1000 * 60 * 60,
+    max: 1000,
+    message: "Too many requests from your IP, try after 1 hour"
+  })
+);
+
+// Set more security headers
+app.use(helmet());
+
+// Compress response on the browser
+app.use(compression());
+
+// Log incoming requests in the server
+app.use(morgan("dev"));
 
 // Endpoints
 app.use("/api/v1/users", usersRouter);

@@ -14,7 +14,7 @@ sequelize
 initModels();
 
 sequelize
-  .sync()
+  .sync({ force: true })
   .then(() => console.log("Database Synced"))
   .catch((err) => console.log(err));
 
